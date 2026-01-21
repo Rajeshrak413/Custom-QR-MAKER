@@ -3,40 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Custom QR Maker Center</title>
+    <title>QR Maker Center - Full Label</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root {
-            --primary: #6366f1;
-            --primary-hover: #4f46e5;
-            --bg: #f8fafc;
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --bg: #f1f5f9;
         }
 
         body {
-            font-family: 'Inter', system-ui, sans-serif;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg);
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             margin: 0;
+            padding: 20px;
         }
 
         .card {
             background: white;
-            padding: 2.5rem;
-            border-radius: 1.5rem;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
             width: 100%;
-            max-width: 400px;
+            max-width: 420px;
             text-align: center;
         }
 
-        h1 { color: #1e293b; margin-bottom: 0.5rem; font-size: 1.8rem; }
-        p { color: #64748b; margin-bottom: 2rem; font-size: 0.9rem; }
-
-        .input-group { margin-bottom: 1rem; text-align: left; }
-        label { display: block; font-size: 0.8rem; font-weight: 600; color: #475569; margin-bottom: 0.4rem; }
+        .input-group { margin-bottom: 1.2rem; text-align: left; }
+        label { display: block; font-size: 0.85rem; font-weight: 700; color: #334155; margin-bottom: 0.5rem; }
 
         input {
             width: 100%;
@@ -44,12 +42,12 @@
             border: 2px solid #e2e8f0;
             border-radius: 8px;
             box-sizing: border-box;
-            transition: border-color 0.2s;
+            font-size: 1rem;
         }
 
         input:focus { border-color: var(--primary); outline: none; }
 
-        .button-stack { display: flex; gap: 10px; margin-top: 1rem; }
+        .btn-container { display: flex; gap: 10px; margin-top: 1.5rem; }
 
         button {
             flex: 1;
@@ -58,130 +56,139 @@
             border-radius: 8px;
             cursor: pointer;
             font-weight: 600;
-            transition: all 0.2s;
+            font-size: 1rem;
+            transition: 0.2s;
         }
 
-        .btn-generate { background: var(--primary); color: white; }
-        .btn-generate:hover { background: var(--primary-hover); }
+        .btn-gen { background: var(--primary); color: white; }
+        .btn-gen:hover { background: var(--primary-dark); }
 
-        .btn-print { 
-            background: #e2e8f0; color: #1e293b; display: none; 
-        }
-        .btn-print:hover { background: #cbd5e1; }
+        .btn-print { background: #64748b; color: white; display: none; }
+        .btn-print:hover { background: #475569; }
 
-        #qr-result-area {
+        /* QR AREA STYLING */
+        #qr-output-section {
             margin-top: 2rem;
             display: none;
-            justify-content: center;
             flex-direction: column;
             align-items: center;
         }
 
-        #qr-wrapper {
+        #qr-container {
             position: relative;
-            padding: 15px;
             background: white;
-            border: 1px solid #e2e8f0;
+            padding: 15px;
+            border: 2px solid #f1f5f9;
             border-radius: 12px;
+            display: inline-block;
         }
 
-        /* The "Text in Center" Overlay */
-        .qr-center-text {
+        /* Center Label Styling - Shows Full Name */
+        .qr-logo-overlay {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             background: white;
-            padding: 2px 5px;
-            font-size: 12px;
-            font-weight: bold;
-            color: var(--primary);
+            padding: 4px 8px;
+            border: 2px solid #000;
             border-radius: 4px;
-            border: 1px solid #eee;
-            max-width: 60px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            font-size: 14px;
+            font-weight: 900;
+            color: #000;
+            white-space: nowrap; /* Prevents name from wrapping */
+            z-index: 10;
+            box-shadow: 0 0 5px rgba(255,255,255,0.8);
         }
 
-        #display-name {
-            margin-top: 10px;
-            font-weight: 700;
+        .bottom-title {
+            margin-top: 15px;
+            font-size: 1.4rem;
+            font-weight: 800;
             color: #1e293b;
-            font-size: 1.2rem;
         }
 
-        /* Print Specific Styles */
+        /* Print Logic */
         @media print {
             body * { visibility: hidden; }
-            #qr-result-area, #qr-result-area * { visibility: visible; }
-            #qr-result-area { position: absolute; left: 0; top: 0; width: 100%; }
+            #qr-output-section, #qr-output-section * { visibility: visible; }
+            #qr-output-section { 
+                position: absolute; 
+                left: 50%; 
+                top: 20%; 
+                transform: translateX(-50%); 
+                width: 100%;
+            }
         }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h1>QR Maker</h1>
-    <p>Create a custom QR with a centered label</p>
+    <h2 style="margin-top:0">QR Maker Center</h2>
     
     <div class="input-group">
-        <label>QR NAME (Displays on QR)</label>
-        <input type="text" id="qr-name" placeholder="e.g. SHOP-01" maxlength="10">
+        <label>FULL NAME / LOGO TEXT</label>
+        <input type="text" id="name-input" placeholder="e.g. JOHN DOE" oninput="updatePreview()">
     </div>
 
     <div class="input-group">
-        <label>TARGET URL / DATA</label>
-        <input type="text" id="qr-data" placeholder="https://example.com">
+        <label>URL OR CONTENT</label>
+        <input type="text" id="data-input" placeholder="https://example.com">
     </div>
     
-    <div class="button-stack">
-        <button class="btn-generate" onclick="generateQR()">Generate</button>
-        <button class="btn-print" id="print-btn" onclick="window.print()">Print</button>
+    <div class="btn-container">
+        <button class="btn-gen" onclick="generate()">Generate QR</button>
+        <button class="btn-print" id="p-btn" onclick="window.print()">Print Now</button>
     </div>
 
-    <div id="qr-result-area">
-        <div id="qr-wrapper">
+    <div id="qr-output-section">
+        <div id="qr-container">
             <div id="qrcode"></div>
-            <div id="center-label" class="qr-center-text"></div>
+            <div id="logo-text" class="qr-logo-overlay"></div>
         </div>
-        <div id="display-name"></div>
+        <div id="bottom-label" class="bottom-title"></div>
     </div>
 </div>
 
 <script>
-    function generateQR() {
-        const name = document.getElementById('qr-name').value;
-        const data = document.getElementById('qr-data').value;
-        const resultArea = document.getElementById('qr-result-area');
-        const centerLabel = document.getElementById('center-label');
-        const displayName = document.getElementById('display-name');
-        const printBtn = document.getElementById('print-btn');
+    function generate() {
+        const nameVal = document.getElementById('name-input').value;
+        const dataVal = document.getElementById('data-input').value;
         const qrDiv = document.getElementById('qrcode');
+        const output = document.getElementById('qr-output-section');
+        const printBtn = document.getElementById('p-btn');
 
-        if (!data) {
-            alert("Please enter a URL or text");
+        if (!dataVal) {
+            alert("Please enter a link or text first.");
             return;
         }
 
-        // Reset and Show
+        // Clear and Show
         qrDiv.innerHTML = "";
-        resultArea.style.display = 'flex';
-        printBtn.style.display = 'block';
+        output.style.display = "flex";
+        printBtn.style.display = "block";
 
-        // Set labels
-        displayName.innerText = name || "Generated QR";
-        centerLabel.innerText = name || "QR";
+        // Update Text Layers
+        document.getElementById('logo-text').innerText = nameVal || "QR";
+        document.getElementById('bottom-label').innerText = nameVal || "";
 
-        // Generate
+        // Create QR
         new QRCode(qrDiv, {
-            text: data,
-            width: 220,
-            height: 220,
+            text: dataVal,
+            width: 250,
+            height: 250,
             colorDark : "#000000",
             colorLight : "#ffffff",
-            correctLevel : QRCode.CorrectLevel.H // High correction helps with center overlay
+            correctLevel : QRCode.CorrectLevel.H
         });
+    }
+
+    // Dynamic update for the logo text while typing
+    function updatePreview() {
+        const nameVal = document.getElementById('name-input').value;
+        const logo = document.getElementById('logo-text');
+        if(logo) logo.innerText = nameVal;
     }
 </script>
 
