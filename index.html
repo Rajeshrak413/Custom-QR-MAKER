@@ -2,21 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Courier Label - 3cm Bottom Gap</title>
+    <title>Courier Label System - Manual Entry</title>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.0/dist/JsBarcode.all.min.js"></script>
     <style>
-        /* Define 10cm x 15cm Page */
         @page { size: 10cm 15cm; margin: 0; }
-        
-        body { 
-            font-family: 'Arial', sans-serif; 
-            background: #f0f0f0; 
-            margin: 0; 
-            padding: 20px; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-        }
+        body { font-family: 'Arial', sans-serif; background: #f0f0f0; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
 
         /* Control Panel */
         .controls {
@@ -24,27 +14,23 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.1); border: 1px solid #ddd;
         }
         .control-group { margin-bottom: 12px; display: flex; gap: 8px; align-items: center; }
-        select, .scan-input { padding: 10px; border: 2px solid #ccc; border-radius: 4px; flex-grow: 1; font-size: 14px; }
+        select, .scan-input, .manual-input { padding: 10px; border: 2px solid #ccc; border-radius: 4px; font-size: 14px; }
+        .scan-input { flex-grow: 1; border-color: #000; }
+        .manual-input { display: none; border-color: #e31e24; }
 
         /* Label Container with 3cm Bottom Gap */
         .label-container {
-            width: 10cm; 
-            height: 15cm; 
-            background: white; 
-            padding: 8mm 8mm 38mm 8mm; /* Added ~30mm (3cm) + 8mm base padding at bottom */
-            box-sizing: border-box;
-            display: flex; 
-            flex-direction: column; 
-            border: 2px solid #000; 
-            position: relative;
-            overflow: hidden;
+            width: 10cm; height: 15cm; background: white; 
+            padding: 8mm 8mm 38mm 8mm; /* 3cm + base padding */
+            box-sizing: border-box; display: flex; flex-direction: column; 
+            border: 2px solid #000; position: relative; overflow: hidden;
         }
 
-        /* Branding Themes */
+        /* Branding */
         .header { padding: 10px; text-align: center; border-radius: 4px; margin-bottom: 10px; -webkit-print-color-adjust: exact; }
         .theme-st .header { background: #e31e24; color: white; }
         .theme-bluedart .header { background: #003399; color: #ffcc00; }
-        .theme-dtdc .header { background: #0054a6; color: white; }
+        .theme-custom .header { background: #333; color: #fff; }
 
         /* Barcode Area */
         .barcode-section { text-align: center; margin-bottom: 15px; }
@@ -52,22 +38,14 @@
         .hidden { display: none !important; }
 
         /* Addresses */
-        .address-wrapper { flex-grow: 1; display: flex; flex-direction: column; justify-content: flex-start; gap: 15px; }
-        .tag { font-weight: bold; font-size: 14pt; color: #e31e24; display: block; border-bottom: 1px solid #000; margin-bottom: 4px; }
-        .editable { outline: none; font-size: 13pt; line-height: 1.3; }
+        .address-wrapper { flex-grow: 1; display: flex; flex-direction: column; justify-content: flex-start; gap: 12px; }
+        .tag { font-weight: bold; font-size: 14pt; color: #e31e24; display: block; border-bottom: 1px solid #000; }
+        .editable { outline: none; font-size: 13pt; line-height: 1.3; margin-top: 5px; }
 
-        /* Footer - Positioned above the 3cm gap */
         .footer { border-top: 1px solid #000; padding-top: 5px; font-size: 10pt; font-weight: bold; }
 
-        /* Visual indicator for the gap (only on screen) */
-        .gap-indicator {
-            position: absolute; bottom: 0; left: 0; width: 100%; height: 30mm;
-            background: repeating-linear-gradient(45deg, #f9f9f9, #f9f9f9 10px, #fff 10px, #fff 20px);
-            border-top: 1px dashed #ccc; text-align: center; line-height: 30mm; color: #ccc; font-size: 10pt;
-        }
-
         @media print {
-            .controls, .gap-indicator { display: none !important; }
+            .controls { display: none !important; }
             body { background: white; padding: 0; }
             .label-container { border: 2px solid #000 !important; margin: 0; }
         }
@@ -81,18 +59,23 @@
                 <option value="st">ST COURIER</option>
                 <option value="bluedart">BLUEDART</option>
                 <option value="dtdc">DTDC</option>
+                <option value="custom">-- CUSTOM NAME --</option>
             </select>
+            <input type="text" id="manualCourier" class="manual-input" placeholder="Enter Courier Name...">
+        </div>
+        
+        <div class="control-group">
+            <input type="text" id="scanInput" class="scan-input" placeholder="Type/Scan Tracking ID..." autofocus>
+        </div>
+
+        <div class="control-group">
             <label style="font-size:12px;"><input type="checkbox" id="toggleCourier" checked> Header</label>
             <label style="font-size:12px;"><input type="checkbox" id="toggleBarcode" checked> Barcode</label>
-        </div>
-        <div class="control-group">
-            <input type="text" id="scanInput" class="scan-input" placeholder="Scan or Type Tracking ID..." autofocus>
-            <button onclick="window.print()" style="padding:10px 15px; background:#000; color:#fff; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">PRINT</button>
+            <button onclick="window.print()" style="margin-left:auto; padding:8px 20px; background:#000; color:#fff; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">PRINT</button>
         </div>
     </div>
 
     <div id="labelMain" class="label-container theme-st">
-        
         <div id="headerDiv" class="header">
             <h1 id="display-name" style="margin:0; font-size: 24pt; text-transform: uppercase;">ST COURIER</h1>
         </div>
@@ -124,39 +107,48 @@
         <div class="footer">
             DATE: <span id="curDate"></span>
         </div>
-
-        <div class="gap-indicator">3CM BLANK SPACE</div>
     </div>
 
     <script>
         const scanInput = document.getElementById('scanInput');
         const courierSelect = document.getElementById('courierSelect');
+        const manualCourier = document.getElementById('manualCourier');
         const labelMain = document.getElementById('labelMain');
         const displayName = document.getElementById('display-name');
         
         document.getElementById('curDate').innerText = new Date().toLocaleDateString();
 
+        // Barcode Generation
         function generateBarcode(text) {
             JsBarcode("#barcode-canvas", text || "58168593206", {
-                format: "CODE128",
-                width: 2,
-                height: 60,
-                displayValue: true
+                format: "CODE128", width: 2, height: 60, displayValue: true
             });
         }
-
         generateBarcode();
-
         scanInput.addEventListener('input', () => generateBarcode(scanInput.value));
 
+        // Courier Selection Logic
         courierSelect.addEventListener('change', () => {
-            labelMain.className = 'label-container theme-' + courierSelect.value;
-            displayName.innerText = courierSelect.options[courierSelect.selectedIndex].text;
+            if (courierSelect.value === 'custom') {
+                manualCourier.style.display = 'block';
+                labelMain.className = 'label-container theme-custom';
+                displayName.innerText = "COURIER NAME";
+                manualCourier.focus();
+            } else {
+                manualCourier.style.display = 'none';
+                labelMain.className = 'label-container theme-' + courierSelect.value;
+                displayName.innerText = courierSelect.options[courierSelect.selectedIndex].text;
+            }
         });
 
+        // Manual Courier Entry
+        manualCourier.addEventListener('input', () => {
+            displayName.innerText = manualCourier.value.toUpperCase() || "COURIER NAME";
+        });
+
+        // Visibility Toggles
         document.getElementById('toggleCourier').addEventListener('change', (e) => 
             document.getElementById('headerDiv').classList.toggle('hidden', !e.target.checked));
-        
         document.getElementById('toggleBarcode').addEventListener('change', (e) => 
             document.getElementById('barcodeDiv').classList.toggle('hidden', !e.target.checked));
     </script>
