@@ -2,155 +2,305 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Courier Label System - Manual Entry</title>
-    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.0/dist/JsBarcode.all.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DHL CDC - Weekly Roster Plan</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        @page { size: 10cm 15cm; margin: 0; }
-        body { font-family: 'Arial', sans-serif; background: #f0f0f0; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-
-        /* Control Panel */
-        .controls {
-            width: 10cm; background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1); border: 1px solid #ddd;
+        :root { --dhl-red: #d40511; --dhl-yellow: #ffcc00; --header-bg: #1a1a1a; }
+        
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f0f0; margin: 0; padding: 10px; }
+        
+        .container { 
+            max-width: 1150px; margin: auto; background: white; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2); border-radius: 4px; overflow: hidden; 
         }
-        .control-group { margin-bottom: 12px; display: flex; gap: 8px; align-items: center; }
-        select, .scan-input, .manual-input { padding: 10px; border: 2px solid #ccc; border-radius: 4px; font-size: 14px; }
-        .scan-input { flex-grow: 1; border-color: #000; }
-        .manual-input { display: none; border-color: #e31e24; }
+        
+        /* BRAND HEADER */
+        .main-header-bar {
+            background: #000; color: #fff; display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 25px; border-bottom: 6px solid var(--dhl-red);
+        }
+        .dhl-brand { font-size: 26px; font-weight: 900; }
+        .client-name { color: var(--dhl-yellow); font-size: 18px; font-weight: 800; border-left: 3px solid #fff; padding-left: 12px; margin-left: 12px; }
+        .roster-plan-title { font-size: 20px; font-weight: 900; text-transform: uppercase; }
 
-        /* Label Container with 3cm Bottom Gap */
-        .label-container {
-            width: 10cm; height: 15cm; background: white; 
-            padding: 8mm 8mm 38mm 8mm; /* 3cm + base padding */
-            box-sizing: border-box; display: flex; flex-direction: column; 
-            border: 2px solid #000; position: relative; overflow: hidden;
+        /* TOOLBAR */
+        .toolbar { 
+            display: flex; justify-content: space-between; background: var(--dhl-yellow); 
+            padding: 12px 25px; border-bottom: 3px solid #000; align-items: center; 
+        }
+        #printDateDisplay { font-weight: 900; font-size: 16px; color: #000; border: 2.5px solid #000; padding: 5px 15px; background: #fff; }
+
+        .content { padding: 0 15px 10px 15px; }
+
+        /* TABLE STYLING */
+        table { 
+            width: 100%; border-collapse: collapse; border: 2.5px solid #000; 
+            table-layout: fixed; margin-bottom: 15px; 
+        }
+        
+        th { 
+            background: var(--header-bg); color: #fff; border: 1.5px solid #000; 
+            padding: 10px 4px; font-size: 13px; font-weight: 900; text-transform: uppercase; text-align: center; 
         }
 
-        /* Branding */
-        .header { padding: 10px; text-align: center; border-radius: 4px; margin-bottom: 10px; -webkit-print-color-adjust: exact; }
-        .theme-st .header { background: #e31e24; color: white; }
-        .theme-bluedart .header { background: #003399; color: #ffcc00; }
-        .theme-custom .header { background: #333; color: #fff; }
+        td { 
+            border: 1.5px solid #000; padding: 8px 4px; font-size: 14px; 
+            font-weight: 900; text-transform: uppercase; text-align: left; color: #000;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
 
-        /* Barcode Area */
-        .barcode-section { text-align: center; margin-bottom: 15px; }
-        #barcode-canvas { width: 100%; height: auto; max-height: 25mm; }
-        .hidden { display: none !important; }
+        tr:nth-child(even) { background-color: #f2f2f2; }
 
-        /* Addresses */
-        .address-wrapper { flex-grow: 1; display: flex; flex-direction: column; justify-content: flex-start; gap: 12px; }
-        .tag { font-weight: bold; font-size: 14pt; color: #e31e24; display: block; border-bottom: 1px solid #000; }
-        .editable { outline: none; font-size: 13pt; line-height: 1.3; margin-top: 5px; }
+        .col-sl { width: 35px; text-align: center; }
+        .col-name { width: 150px; }
+        .col-shift { width: 110px; text-align: center; }
+        .col-role { width: 130px; }
+        .col-assign { width: 180px; } 
+        .col-time { width: 90px; text-align: center; display: none; } 
 
-        .footer { border-top: 1px solid #000; padding-top: 5px; font-size: 10pt; font-weight: bold; }
+        .dept-header { 
+            background: var(--dhl-red); color: #fff; padding: 10px; margin-top: 15px; 
+            font-size: 16px; font-weight: 900; text-align: center; text-transform: uppercase; 
+            border: 2.5px solid #000; border-bottom: none;
+        }
+        
+        .cutoff-line { 
+            background: #fff9c4; border: 2.5px solid #000; border-top: 1.5px solid #000;
+            padding: 8px; font-size: 13px; font-weight: 900; display: flex; justify-content: center; gap: 20px;
+        }
 
+        /* SHIFT IDENTITY COLORS (SCREEN ONLY) */
+        .shift-badge { font-size: 12px; padding: 2px 4px; color: #555; }
+        .shift-changed { 
+            background-color: var(--dhl-yellow) !important; 
+            color: var(--dhl-red) !important;
+            border: 1px solid #000;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        
+        .shift-select { 
+            padding: 4px; font-size: 13px; font-weight: 900; border: 1.5px solid #000; 
+            width: 100%; text-transform: uppercase; background-color: #fff;
+        }
+
+        .btn { padding: 10px 18px; border: none; border-radius: 4px; cursor: pointer; font-weight: 900; text-transform: uppercase; font-size: 11px; }
+        .btn-img { background: #2e7d32; color: white; margin-right: 8px; }
+        .btn-print { background: #d40511; color: white; }
+
+        .signature-section { 
+            display: flex; justify-content: space-around; padding: 50px 40px 15px 40px; 
+            border-top: 2.5px solid #000; margin: 15px 15px 10px 15px; 
+        }
+        .sig-box { border-top: 4px solid #000; width: 250px; text-align: center; font-size: 15px; font-weight: 900; padding-top: 8px; }
+
+        /* --- PRINT OPTIMIZATION --- */
         @media print {
-            .controls { display: none !important; }
-            body { background: white; padding: 0; }
-            .label-container { border: 2px solid #000 !important; margin: 0; }
+            @page { size: A4 portrait; margin: 0.5cm; }
+            body { padding: 0; background: white; }
+            .toolbar { background: white !important; border: none !important; display: flex !important; justify-content: center !important; }
+            .toolbar div:first-child, .btn { display: none !important; }
+            #printDateDisplay { border: none !important; font-size: 18px !important; }
+            .col-assign { display: none !important; }
+            .col-time { display: table-cell !important; } 
+            
+            /* HIDE REMARK COLOR IN PRINT */
+            .shift-changed { 
+                background-color: transparent !important; 
+                color: #000 !important; 
+                border: none !important;
+                padding: 0 !important;
+            }
+
+            .container { box-shadow: none; border: none; width: 100%; transform: scale(0.98); transform-origin: top center; }
+            td, th { padding: 6px 3px !important; font-size: 11px !important; }
+            .dept-header { font-size: 13px !important; margin-top: 8px !important; }
+            .main-header-bar, .dept-header, th { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         }
     </style>
 </head>
 <body>
 
-    <div class="controls">
-        <div class="control-group">
-            <select id="courierSelect">
-                <option value="st">ST COURIER</option>
-                <option value="bluedart">BLUEDART</option>
-                <option value="dtdc">DTDC</option>
-                <option value="custom">-- CUSTOM NAME --</option>
-            </select>
-            <input type="text" id="manualCourier" class="manual-input" placeholder="Enter Courier Name...">
+<div class="container" id="rosterContainer">
+    <div class="main-header-bar">
+        <div style="display: flex; align-items: center;">
+            <div class="dhl-brand"><span style="color:var(--dhl-yellow)">DHL</span> BANGALORE</div>
+            <div class="client-name">MEDIKABAZAAR</div>
         </div>
-        
-        <div class="control-group">
-            <input type="text" id="scanInput" class="scan-input" placeholder="Type/Scan Tracking ID..." autofocus>
-        </div>
+        <div class="roster-plan-title">Weekly Roster Plan</div>
+    </div>
 
-        <div class="control-group">
-            <label style="font-size:12px;"><input type="checkbox" id="toggleCourier" checked> Header</label>
-            <label style="font-size:12px;"><input type="checkbox" id="toggleBarcode" checked> Barcode</label>
-            <button onclick="window.print()" style="margin-left:auto; padding:8px 20px; background:#000; color:#fff; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">PRINT</button>
+    <div class="toolbar">
+        <div>
+            <span style="font-weight: 900;">WEEK START: </span>
+            <input type="date" id="weekPicker" style="padding:6px; font-weight:900;" onchange="updateWeekLabel(); saveAll();">
+        </div>
+        <div id="printDateDisplay"></div>
+        <div>
+            <button class="btn btn-img" onclick="downloadImage()">Save Image</button>
+            <button class="btn btn-print" onclick="window.print()">Print A4 PDF</button>
         </div>
     </div>
 
-    <div id="labelMain" class="label-container theme-st">
-        <div id="headerDiv" class="header">
-            <h1 id="display-name" style="margin:0; font-size: 24pt; text-transform: uppercase;">ST COURIER</h1>
-        </div>
-
-        <div id="barcodeDiv" class="barcode-section">
-            <svg id="barcode-canvas"></svg>
-        </div>
-
-        <div class="address-wrapper">
-            <div class="address-block">
-                <span class="tag">TO:</span>
-                <div class="editable" contenteditable="true">
-                    <strong>DR. AGARWAL'S EYE HOSPITAL</strong><br>
-                    G.K.S. Complex, Door No. 30/1, Ward No. 6, Melur Road,<br>
-                    Madurai, Tamil Nadu - 625020 | T: 9566735401
-                </div>
-            </div>
-
-            <div class="address-block">
-                <span class="tag">FROM:</span>
-                <div class="editable" contenteditable="true">
-                    <strong>Boston Ivy Healthcare Solutions Pvt Ltd</strong><br>
-                    C/O:- DHL Supply Chain India Pvt. Ltd.<br>
-                    AMR Business Park, Block A, Bangalore, KA - 560068
-                </div>
-            </div>
-        </div>
-
-        <div class="footer">
-            DATE: <span id="curDate"></span>
-        </div>
+    <div class="content" id="roster-content"></div>
+    
+    <div class="signature-section">
+        <div class="sig-box">PREPARED BY</div>
+        <div class="sig-box">WH INCHARGE</div>
     </div>
+</div>
 
-    <script>
-        const scanInput = document.getElementById('scanInput');
-        const courierSelect = document.getElementById('courierSelect');
-        const manualCourier = document.getElementById('manualCourier');
-        const labelMain = document.getElementById('labelMain');
-        const displayName = document.getElementById('display-name');
-        
-        document.getElementById('curDate').innerText = new Date().toLocaleDateString();
-
-        // Barcode Generation
-        function generateBarcode(text) {
-            JsBarcode("#barcode-canvas", text || "58168593206", {
-                format: "CODE128", width: 2, height: 60, displayValue: true
-            });
+<script>
+    const db = {
+        "Management": { "Elumalai B": "WH INCHARGE" },
+        "Outbound": {
+            "Gokul Krishnan TV": "INCHARGE", "Balakrishna G": "PICKER/QA/QC", "Balaraj S": "PACKER/PICKER",
+            "Srikanth B": "PICKER/QA/QC", "Hari H": "PACKER/PICKER", "Umesha L": "QA/QC/PICKER",
+            "Madesh G": "PICKER/PACKER", "Suresh HK": "LOADER"
+        },
+        "Inbound": {
+            "Pavithra M": "QA/QC (DL)", "Chethana S": "INCHARGE (GRN)", "Mahesh U": "INCHARGE (GRN)",
+            "Rekha T": "GRN/QA/QC", "Chandana N": "GRN/QA/QC", "Shivakumar K": "QA/QC/PUTAWAY",
+            "Muthuraj C": "INCHARGE (RTO)", "Vijay VN": "(RTO/RVP/BT)", "Chandrashekar S": "QA/QC/PUTAWAY"
+        },
+        "Inventory": {
+            "Selvakumar S": "INCHARGE", "Rajesh KH": "CYCLE COUNT", "Sachin CN": "CYCLE COUNT"
         }
-        generateBarcode();
-        scanInput.addEventListener('input', () => generateBarcode(scanInput.value));
+    };
 
-        // Courier Selection Logic
-        courierSelect.addEventListener('change', () => {
-            if (courierSelect.value === 'custom') {
-                manualCourier.style.display = 'block';
-                labelMain.className = 'label-container theme-custom';
-                displayName.innerText = "COURIER NAME";
-                manualCourier.focus();
-            } else {
-                manualCourier.style.display = 'none';
-                labelMain.className = 'label-container theme-' + courierSelect.value;
-                displayName.innerText = courierSelect.options[courierSelect.selectedIndex].text;
+    // Priority 1: General (Always Top)
+    // Priority 2: First
+    // Priority 3: Second
+    // SortTime: 24h numeric value for secondary sorting
+    const shifts = { 
+        "09:00 AM - 06:00 PM": { cat: "GENERAL", in: "09:00 AM", out: "06:00 PM", priority: 1, sortTime: 900 },
+        "10:00 AM - 07:00 PM": { cat: "GENERAL", in: "10:00 AM", out: "07:00 PM", priority: 1, sortTime: 1000 }, 
+        "11:00 AM - 08:00 PM": { cat: "GENERAL", in: "11:00 AM", out: "08:00 PM", priority: 1, sortTime: 1100 }, 
+        "07:00 AM - 04:00 PM": { cat: "FIRST",   in: "07:00 AM", out: "04:00 PM", priority: 2, sortTime: 700 },
+        "08:00 AM - 05:00 PM": { cat: "FIRST",   in: "08:00 AM", out: "05:00 PM", priority: 2, sortTime: 800 },
+        "12:00 PM - 09:00 PM": { cat: "SECOND",  in: "12:00 PM", out: "09:00 PM", priority: 3, sortTime: 1200 }, 
+        "01:00 PM - 10:00 PM": { cat: "SECOND",  in: "01:00 PM", out: "10:00 PM", priority: 3, sortTime: 1300 }
+    };
+
+    const structure = [
+        { name: "1-WAREHOUSE MANAGEMENT", dept: "Management" },
+        { name: "2-OUTBOUND OPERATIONS", dept: "Outbound" },
+        { name: "3-INBOUND OPERATIONS", dept: "Inbound" },
+        { name: "4-INVENTORY CONTROL", dept: "Inventory" }
+    ];
+
+    let userAssignments = {};
+    const defaultShift = "10:00 AM - 07:00 PM";
+
+    function updateWeekLabel() {
+        const val = document.getElementById('weekPicker').value;
+        if (!val) return;
+        const start = new Date(val);
+        const end = new Date(start);
+        end.setDate(start.getDate() + 6);
+        const opt = { day: '2-digit', month: 'short', year: 'numeric' };
+        document.getElementById('printDateDisplay').innerText = 
+            `${start.toLocaleDateString('en-GB', opt).toUpperCase()} - ${end.toLocaleDateString('en-GB', opt).toUpperCase()}`;
+    }
+
+    function build() {
+        const root = document.getElementById('roster-content');
+        root.innerHTML = '';
+        structure.forEach(s => {
+            const deptName = s.dept;
+            let staffList = Object.keys(db[deptName]);
+            
+            const h = document.createElement('div');
+            h.className = 'dept-header';
+            h.innerText = s.name;
+            root.appendChild(h);
+
+            if(deptName === "Outbound") {
+                const cut = document.createElement('div');
+                cut.className = 'cutoff-line';
+                cut.innerHTML = `OUTBOUND CUT-OFFS: 1ST: 10:00 AM | 2ND: 05:00 PM | 3RD: 08:00 PM`;
+                root.appendChild(cut);
             }
-        });
 
-        // Manual Courier Entry
-        manualCourier.addEventListener('input', () => {
-            displayName.innerText = manualCourier.value.toUpperCase() || "COURIER NAME";
-        });
+            // SORT LOGIC: Priority First (General=1), then by Start Time
+            staffList.sort((a, b) => {
+                const sA = shifts[userAssignments[a] || defaultShift];
+                const sB = shifts[userAssignments[b] || defaultShift];
+                if (sA.priority !== sB.priority) return sA.priority - sB.priority;
+                return sA.sortTime - sB.sortTime;
+            });
 
-        // Visibility Toggles
-        document.getElementById('toggleCourier').addEventListener('change', (e) => 
-            document.getElementById('headerDiv').classList.toggle('hidden', !e.target.checked));
-        document.getElementById('toggleBarcode').addEventListener('change', (e) => 
-            document.getElementById('barcodeDiv').classList.toggle('hidden', !e.target.checked));
-    </script>
+            let tableHTML = `<table><thead><tr>
+                <th class="col-sl">SL</th>
+                <th class="col-name">EMPLOYEE NAME</th>
+                <th class="col-shift">SHIFT</th>
+                <th class="col-role">ROLE PROFILE</th>
+                <th class="col-assign">SELECT TIMING</th>
+                <th class="col-time">IN TIME</th>
+                <th class="col-time">OUT TIME</th>
+            </tr></thead><tbody>`;
+            
+            staffList.forEach((name, idx) => {
+                const shiftKey = userAssignments[name] || defaultShift;
+                const t = shifts[shiftKey];
+                const shiftHighlight = (shiftKey !== defaultShift) ? 'shift-changed' : '';
+
+                tableHTML += `<tr>
+                    <td class="col-sl">${idx + 1}</td>
+                    <td class="col-name">${name}</td>
+                    <td class="col-shift"><span class="shift-badge ${shiftHighlight}">${t.cat}</span></td>
+                    <td class="col-role">${db[deptName][name]}</td>
+                    <td class="col-assign">
+                        <select class="shift-select" onchange="updateShift('${name}', this.value)">
+                            ${Object.keys(shifts).sort((a,b)=>shifts[a].priority-shifts[b].priority || shifts[a].sortTime-shifts[b].sortTime).map(x => `
+                                <option value="${x}" ${x === shiftKey ? 'selected' : ''}>${x}</option>`).join('')}
+                        </select>
+                    </td>
+                    <td class="col-time" style="text-align:center">${t.in}</td>
+                    <td class="col-time" style="text-align:center">${t.out}</td>
+                </tr>`;
+            });
+            tableHTML += `</tbody></table>`;
+            const wrapper = document.createElement('div');
+            wrapper.innerHTML = tableHTML;
+            root.appendChild(wrapper);
+        });
+    }
+
+    function updateShift(name, newShift) {
+        userAssignments[name] = newShift;
+        saveAll();
+        build();
+    }
+
+    function saveAll() {
+        localStorage.setItem('dhl_roster_v4', JSON.stringify(userAssignments));
+        localStorage.setItem('dhl_date_v4', document.getElementById('weekPicker').value);
+    }
+
+    function loadAll() {
+        const saved = JSON.parse(localStorage.getItem('dhl_roster_v4'));
+        if (saved) userAssignments = saved;
+        const savedDate = localStorage.getItem('dhl_date_v4');
+        if (savedDate) document.getElementById('weekPicker').value = savedDate;
+        updateWeekLabel();
+        build();
+    }
+
+    function downloadImage() {
+        const container = document.getElementById('rosterContainer');
+        html2canvas(container, { scale: 2 }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = `DHL_Roster.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        });
+    }
+
+    if(!document.getElementById('weekPicker').value) document.getElementById('weekPicker').valueAsDate = new Date();
+    loadAll();
+</script>
+
 </body>
 </html>
