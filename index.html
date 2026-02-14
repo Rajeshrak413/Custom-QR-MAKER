@@ -169,16 +169,16 @@
         }
     };
 
-    // Priority 1: General (Always Top)
-    // Priority 2: First
+    // Priority 2: General (Always Top)
+    // Priority 1: First
     // Priority 3: Second
     // SortTime: 24h numeric value for secondary sorting
     const shifts = { 
-        "09:00 AM - 06:00 PM": { cat: "GENERAL", in: "09:00 AM", out: "06:00 PM", priority: 1, sortTime: 900 },
-        "10:00 AM - 07:00 PM": { cat: "GENERAL", in: "10:00 AM", out: "07:00 PM", priority: 1, sortTime: 1000 }, 
-        "11:00 AM - 08:00 PM": { cat: "GENERAL", in: "11:00 AM", out: "08:00 PM", priority: 1, sortTime: 1100 }, 
-        "07:00 AM - 04:00 PM": { cat: "FIRST",   in: "07:00 AM", out: "04:00 PM", priority: 2, sortTime: 700 },
-        "08:00 AM - 05:00 PM": { cat: "FIRST",   in: "08:00 AM", out: "05:00 PM", priority: 2, sortTime: 800 },
+        "09:00 AM - 06:00 PM": { cat: "GENERAL", in: "09:00 AM", out: "06:00 PM", priority: 2, sortTime: 900 },
+        "10:00 AM - 07:00 PM": { cat: "GENERAL", in: "10:00 AM", out: "07:00 PM", priority: 2, sortTime: 1000 }, 
+        "11:00 AM - 08:00 PM": { cat: "GENERAL", in: "11:00 AM", out: "08:00 PM", priority: 2, sortTime: 1100 }, 
+        "07:00 AM - 04:00 PM": { cat: "FIRST",   in: "07:00 AM", out: "04:00 PM", priority: 1, sortTime: 700 },
+        "08:00 AM - 05:00 PM": { cat: "FIRST",   in: "08:00 AM", out: "05:00 PM", priority: 1, sortTime: 800 },
         "12:00 PM - 09:00 PM": { cat: "SECOND",  in: "12:00 PM", out: "09:00 PM", priority: 3, sortTime: 1200 }, 
         "01:00 PM - 10:00 PM": { cat: "SECOND",  in: "01:00 PM", out: "10:00 PM", priority: 3, sortTime: 1300 }
     };
